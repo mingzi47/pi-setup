@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "triggers": {
+    ".pi/agent/git/github.com/hugohe3/ppt-master/skills/ppt-master/SKILL.md": "manual",
+    ".pi/agent/git/github.com/mattpocock/skills/skills/productivity/grill-me/SKILL.md": "manual",
+    ".pi/agent/git/github.com/mattpocock/skills/skills/engineering/grill-with-docs/SKILL.md": "manual",
+    ".pi/agent/git/github.com/mattpocock/skills/skills/engineering/tdd/SKILL.md": "manual"
+  }
+}

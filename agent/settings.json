@@ -1,0 +1,50 @@
+{
+  "lastChangelogVersion": "0.75.5",
+  "packages": [
+    {
+      "source": "https://github.com/hugohe3/ppt-master.git",
+      "skills": [
+        "+skills/ppt-master"
+      ]
+    },
+    {
+      "source": "git:github.com/mattpocock/skills@main",
+      "skills": [
+        "+skills/productivity/grill-me",
+        "+skills/engineering/grill-with-docs",
+        "-skills/productivity/caveman",
+        "-skills/deprecated/design-an-interface",
+        "-skills/engineering/diagnose",
+        "-skills/personal/edit-article",
+        "-skills/misc/git-guardrails-claude-code",
+        "-skills/productivity/handoff",
+        "-skills/engineering/improve-codebase-architecture",
+        "-skills/misc/migrate-to-shoehorn",
+        "-skills/personal/obsidian-vault",
+        "-skills/engineering/prototype",
+        "-skills/deprecated/qa",
+        "-skills/deprecated/request-refactor-plan",
+        "-skills/in-progress/review",
+        "-skills/misc/scaffold-exercises",
+        "-skills/engineering/setup-matt-pocock-skills",
+        "-skills/misc/setup-pre-commit",
+        "-skills/in-progress/teach",
+        "-skills/engineering/to-issues",
+        "-skills/engineering/to-prd",
+        "-skills/engineering/triage",
+        "-skills/deprecated/ubiquitous-language",
+        "+skills/engineering/tdd",
+        "-skills/productivity/write-a-skill",
+        "-skills/in-progress/writing-beats",
+        "-skills/in-progress/writing-fragments",
+        "-skills/in-progress/writing-shape",
+        "-skills/engineering/zoom-out"
+      ]
+    }
+  ],
+  "enabledModels": [
+    "deepseek*"
+  ],
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-pro"
+}
