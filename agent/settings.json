@@ -46,7 +46,7 @@
     "deepseek*"
   ],
   "defaultProvider": "deepseek",
-  "defaultModel": "deepseek-v4-pro",
+  "defaultModel": "deepseek-flash",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": true
 }
