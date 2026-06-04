@@ -19,7 +19,7 @@ import * as path from "node:path";
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import type { Message } from "@earendil-works/pi-ai";
 import { StringEnum } from "@earendil-works/pi-ai";
-import { type ExtensionAPI, getMarkdownTheme, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
+import { getAgentDir, type ExtensionAPI, getMarkdownTheme, withFileMutationQueue } from "@earendil-works/pi-coding-agent";
 import { Container, Markdown, Spacer, Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";
@@ -28,6 +28,60 @@ const MAX_PARALLEL_TASKS = 8;
 const MAX_CONCURRENCY = 4;
 const COLLAPSED_ITEM_COUNT = 10;
 const PER_TASK_OUTPUT_CAP = 50 * 1024;
+
+const VALID_THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh"] as const;
+
+function loadModelProfiles(): Record<string, string> {
+	const settingsPath = path.join(getAgentDir(), "settings.json");
+	try {
+		const content = fs.readFileSync(settingsPath, "utf-8");
+		const settings = JSON.parse(content);
+		if (
+			settings.modelProfiles &&
+			typeof settings.modelProfiles === "object" &&
+			!Array.isArray(settings.modelProfiles)
+		) {
+			// Filter out non-string values (e.g. numbers, null) to prevent crashes in caller
+			const profiles: Record<string, string> = {};
+			for (const [key, val] of Object.entries(settings.modelProfiles)) {
+				if (typeof val === "string") profiles[key] = val;
+			}
+			return profiles;
+		}
+	} catch {
+		// ignore — settings.json doesn't exist or is malformed
+	}
+	return {};
+}
+
+function resolveModelAndThinking(
+	modelValue: string | undefined,
+	thinkingValue: string | undefined,
+	profiles: Record<string, string>,
+): { model: string | undefined; thinking: string | undefined } {
+	if (!modelValue) return { model: undefined, thinking: undefined };
+
+	// Step 1: resolve profile name → concrete model ID
+	const resolved = profiles[modelValue] ?? modelValue;
+
+	// Step 2: check if resolved value embeds a thinking level (e.g. "deepseek-v4-pro:high")
+	const colonIdx = resolved.lastIndexOf(":");
+	if (colonIdx !== -1) {
+		const suffix = resolved.substring(colonIdx + 1);
+		if ((VALID_THINKING_LEVELS as readonly string[]).includes(suffix)) {
+			return {
+				model: resolved.substring(0, colonIdx),
+				// explicit thinking overrides embedded suffix
+				thinking: thinkingValue ?? suffix,
+			};
+		}
+	}
+
+	return {
+		model: resolved,
+		thinking: thinkingValue,
+	};
+}
 
 function formatTokens(count: number): string {
 	if (count < 1000) return count.toString();
@@ -285,8 +339,16 @@ async function runSingleAgent(
 		};
 	}
 
+	const profiles = loadModelProfiles();
+	const { model: resolvedModel, thinking: resolvedThinking } = resolveModelAndThinking(
+		agent.model,
+		agent.thinking,
+		profiles,
+	);
+
 	const args: string[] = ["--mode", "json", "-p", "--no-session"];
-	if (agent.model) args.push("--model", agent.model);
+	if (resolvedModel) args.push("--model", resolvedModel);
+	if (resolvedThinking) args.push("--thinking", resolvedThinking);
 	if (agent.tools && agent.tools.length > 0) args.push("--tools", agent.tools.join(","));
 
 	let tmpPromptDir: string | null = null;
@@ -300,7 +362,7 @@ async function runSingleAgent(
 		messages: [],
 		stderr: "",
 		usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0, contextTokens: 0, turns: 0 },
-		model: agent.model,
+		model: resolvedModel,
 		step,
 	};
 

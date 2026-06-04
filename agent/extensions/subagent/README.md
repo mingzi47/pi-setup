@@ -131,11 +131,64 @@ Agents are markdown files with YAML frontmatter:
 name: my-agent
 description: What this agent does
 tools: read, grep, find, ls
-model: claude-haiku-4-5
+model: strong
+thinking: high
 ---
 
 System prompt for the agent goes here.
 ```
+
+### Model Profiles
+
+Instead of hardcoding concrete model IDs (e.g. `claude-sonnet-4-5`), use abstract
+**model profiles** in agent frontmatter. The `model` field maps to a profile
+name defined in `~/.pi/agent/settings.json`:
+
+```json
+{
+  "modelProfiles": {
+    "fast": "deepseek-flash",
+    "balanced": "deepseek-chat",
+    "strong": "deepseek-v4-pro"
+  }
+}
+```
+
+Resolution rules:
+1. If `model` value matches a key in `modelProfiles`, use the mapped model ID
+2. Otherwise, treat value as direct model ID/pattern (backward compatible)
+3. Profile value may include `:thinking` suffix (e.g. `deepseek-v4-pro:high`)
+
+### Thinking Levels
+
+Set `thinking` in agent frontmatter to control the spawned subagent's
+thinking level. Valid values: `off`, `minimal`, `low`, `medium`, `high`, `xhigh`.
+
+If omitted, no `--thinking` flag is passed and pi uses its default.
+
+```markdown
+---
+name: scout
+model: fast
+thinking: low           # fast scout, minimal reasoning
+---
+
+name: planner
+model: strong
+thinking: high          # thorough plan with deep reasoning
+---
+```
+
+### Field Reference
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Agent name (used in tool calls) |
+| `description` | Yes | What this agent does |
+| `tools` | No | Comma-separated tool allowlist |
+| `model` | No | Model profile name or concrete model ID |
+| `thinking` | No | Thinking level (off/minimal/low/medium/high/xhigh) |
+| body | Yes | System prompt (after frontmatter) |
 
 **Locations:**
 - `~/.pi/agent/agents/*.md` - User-level (always loaded)
@@ -145,12 +198,12 @@ Project agents override user agents with the same name when `agentScope: "both"`
 
 ## Sample Agents
 
-| Agent | Purpose | Model | Tools |
-|-------|---------|-------|-------|
-| `scout` | Fast codebase recon | Haiku | read, grep, find, ls, bash |
-| `planner` | Implementation plans | Sonnet | read, grep, find, ls |
-| `reviewer` | Code review | Sonnet | read, grep, find, ls, bash |
-| `worker` | General-purpose | Sonnet | (all default) |
+| Agent | Purpose | Model Profile | Thinking | Tools |
+|-------|---------|--------------|----------|-------|
+| `scout` | Fast codebase recon | `fast` | `low` | read, grep, find, ls, bash |
+| `planner` | Implementation plans | `strong` | `high` | read, grep, find, ls |
+| `reviewer` | Code review | `strong` | `high` | read, grep, find, ls, bash |
+| `worker` | General-purpose | `strong` | `high` | (all default) |
 
 ## Workflow Prompts
 
