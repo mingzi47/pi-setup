@@ -2,7 +2,7 @@
  * Plan Mode Extension
  *
  * Read-only design discussion mode. Blocks code modifications.
- * - /plan to toggle
+ * - /plan to toggle; /plan <text> toggles then submits text as prompt
  * - Disables edit/write (bash stays open)
  * - Sets thinking to xhigh while active
  * - Restores previous tool set and thinking level on exit
@@ -69,6 +69,12 @@ export default function planModeExtension(pi: ExtensionAPI): void {
 
     ctx.ui.setStatus("plan-mode", undefined);
 
+    pi.sendMessage({
+      customType: "plan-mode",
+      content: "[Plan mode ended. write/edit tools restored.]",
+      display: false,
+    });
+
     persistState();
   }
 
@@ -81,8 +87,15 @@ export default function planModeExtension(pi: ExtensionAPI): void {
   }
 
   pi.registerCommand("plan", {
-    description: "Toggle plan mode (read-only design discussion)",
-    handler: async (_args, ctx) => togglePlanMode(ctx),
+    description: "Toggle plan mode. With text: toggle + submit as prompt.",
+    handler: async (args, ctx) => {
+      if (args.trim().length > 0) {
+        togglePlanMode(ctx);
+        pi.sendUserMessage(args.trim());
+      } else {
+        togglePlanMode(ctx);
+      }
+    },
   });
 
   // Block destructive tools in plan mode

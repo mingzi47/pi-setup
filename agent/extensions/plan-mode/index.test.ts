@@ -61,6 +61,8 @@ function createMockExtensionAPI() {
     getThinkingLevel() {
       return thinkingLevel;
     },
+    sendMessage: mock.fn(),
+    sendUserMessage: mock.fn(),
     appendEntry: mock.fn(),
     getFlag: mock.fn(() => undefined),
 
